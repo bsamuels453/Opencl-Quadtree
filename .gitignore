@@ -16,6 +16,7 @@ Thumbs.db
 *.cachefile
 *.bmp
 *.vsp
+*.opensdf
 *.dds
 *.exe
 *.fbx
