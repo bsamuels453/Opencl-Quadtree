@@ -14,7 +14,16 @@
 bool IsVertexRelevant(float4 *verts);
 bool AreCornersEqual(__global bool *activeVerts,int width,int centerX,int centerZ,int radius,bool desiredVal);
 bool AreSidesEqual(__global bool *activeNodes,int chunkWidth,int centerX,int centerZ,int radius,bool desiredVal);
-void CrossCull(int cellWidth,int chunkBlockWidth,int curDepth, float4 *normals, bool *activeNodes);
+void CrossCull(
+	int x_id,
+	int z_id,
+	int x_max,
+	int z_max,
+    int cellWidth,
+    int chunkBlockWidth,
+    int curDepth,
+    float4 *normals,
+    bool *activeNodes);
 void HorizontalWorker(    int chunkBlockWidth,    int maxDepth,    float4 *normals,    bool *activeNodes);
 void VerticalWorker(    int chunkBlockWidth,    int maxDepth,    float4 *normals,    bool *activeNodes);
 typedef enum{
@@ -71,7 +80,7 @@ typedef enum{
 		0,0,0,0,0,0,0,0,0,
 		1,0,1,0,1,0,1,0,1
 	};*/
-
+	/*
 	bool activeVerts[] = {
 		1,0,1,0,1,0,1,0,1,
 		0,1,0,1,0,1,0,1,0,
@@ -83,7 +92,21 @@ typedef enum{
 		0,1,0,1,0,1,0,1,0,
 		1,0,1,0,1,0,1,0,1
 	};
+	*/
+	bool activeVerts[] = {
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1,
+		1,1,1,1,1,1,1,1,1
+	};
 
+	int ctr1=0;
+	int ctr2=0;
 //clockwise everything
 __Kernel(hello)
 	__ArgNULL
@@ -101,16 +124,21 @@ __Kernel(hello)
 		//activeVerts 
 	}
     //end of setup code
-           
-        if( get_global_id(1) <= get_global_size(1)/2){//xx
-			HorizontalWorker(chunkWidth, maxDepth, normals, activeVerts);
-			return;
-        }
+    //int sizx = get_global_id(0);
+	int sizz = get_global_id(1);
+	int size1= get_global_size(0);
+	int size2= get_global_size(1);
+    if( get_global_id(1) < get_global_size(1)/2){//xx
+		HorizontalWorker(chunkWidth, maxDepth, normals, activeVerts);
+		ctr1++;
+    }
+	else{
+		ctr2++;
 		VerticalWorker(chunkWidth, maxDepth, normals, activeVerts);
+	}
 
 
-		int size1= get_global_size(0);
-		int size2= get_global_size(1);
+
 		if(get_global_id(0) == get_global_size(0)-1 && get_global_id(1) == get_global_size(1)-1){
 
 
@@ -122,11 +150,13 @@ __Kernel(hello)
 				}
 				printf("\n");
 			}
+			int gfg=5;
 		}
 
-		int f=4;
+
+		int	 f=4;
 		__Return;
-    }
+}
 
 void VerticalWorker(
     int chunkBlockWidth,
@@ -177,6 +207,10 @@ void VerticalWorker(
 			//figure out if this thread is going to do cross culling
 			//if not, waits at the next fence like a good little worker
 			CrossCull(
+				z_id,
+				x_id,
+				get_global_size(0)+1,
+				get_global_size(1)/2,
 				curCellWidth,
 				chunkBlockWidth,
 				curDepth,
@@ -250,6 +284,10 @@ void HorizontalWorker(
 			//figure out if this thread is going to do cross culling
 			//if not, waits at the next fence like a good little worker
 			CrossCull(
+				x_id,
+				z_id,
+				get_global_size(0)+1,
+				get_global_size(1)/2,
 				curCellWidth,
 				chunkBlockWidth,
 				curDepth,
@@ -272,17 +310,16 @@ void HorizontalWorker(
     }
     
 void CrossCull(
+	int x_id,
+	int z_id,
+	int x_max,
+	int z_max,
     int cellWidth,
     int chunkBlockWidth,
     int curDepth,
     float4 *normals,
     bool *activeNodes){
-    
-        int x_id = get_global_id(0);
-        int z_id = get_global_id(1);
-        
-        int x_max = get_global_size(0);
-        int z_max = get_global_size(1);
+
 
         //this enumerates the 2d array of worker ids into a 1d array of super_ids
         int super_id = x_id+z_id*x_max;
