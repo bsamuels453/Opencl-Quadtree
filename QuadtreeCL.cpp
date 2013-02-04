@@ -38,10 +38,13 @@ int workgroup_sz = 64;
 	        //int xThreads = chunkWidth/cellWidth-1;
         //int zThreads = chunkWidth/cellWidth;
 
-	int chunkWidth=8;
+	int chunkWidth=16;
 
 int localThreads[] = {1, 1};
-int globalThreads[] = {chunkWidth/2-1, chunkWidth};//snd*2?
+//int globalThreads[] = {chunkWidth/2-1, chunkWidth};//snd*2?
+//chunkBlockWidth/(curCellWidth)-1;
+
+int globalThreads[] = {chunkWidth/4-1, chunkWidth/2};//snd*2?
 
 //int localThreads[] = {8, workgroup_sz/8};
 //int globalThreads[] = {2*localThreads[0],2*localThreads[1]};

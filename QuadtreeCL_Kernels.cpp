@@ -93,6 +93,7 @@ typedef enum{
 		1,0,1,0,1,0,1,0,1
 	};
 	*/
+	/*
 	bool activeVerts[] = {
 		1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1,
@@ -104,6 +105,26 @@ typedef enum{
 		1,1,1,1,1,1,1,1,1,
 		1,1,1,1,1,1,1,1,1
 	};
+	*/
+	bool activeVerts[] = {
+		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+		1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,
+		1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,
+		1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,
+		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+	};
 
 	int ctr1=0;
 	int ctr2=0;
@@ -114,12 +135,12 @@ __Kernel(hello)
 	__ArgNULL
 {
 	//setup the args here since this stupid arg shit wont work
-    int chunkWidth = 8;
+    int chunkWidth = 16;
     int maxDepth = 1;
 	if( get_global_id(0)==0 && get_global_id(1)==0){//xx
-		normals = new float4[81];
+		normals = new float4[289];
 		//activeVerts = new bool[81];
-		for(int i=0; i<81; i++){
+		for(int i=0; i<289; i++){
 			normals[i] =0,0,0;
 			//activeVerts[i] = true;
 		}
@@ -138,21 +159,16 @@ __Kernel(hello)
 		ctr2++;
 		VerticalWorker(chunkWidth, maxDepth, normals, activeVerts);
 	}
-
-
-
 		if(get_global_id(0) == get_global_size(0)-1 && get_global_id(1) == get_global_size(1)-1){
-
-
-			for(int x=0; x<9; x++){
-				for(int y=0; y<9; y++){
+			for(int x=0; x<17; x++){
+				for(int y=0; y<17; y++){
 					char* c;
-					itoa(activeVerts[x+y*9], c, 10);
+					itoa(activeVerts[y+x*17], c, 10);
 					printf(c);
 				}
 				printf("\n");
 			}
-			int gfg=5;
+				int gfg=5;
 		}
 
 
@@ -169,7 +185,7 @@ void VerticalWorker(
         int chunkVertWidth = chunkBlockWidth+1;
         int z_id = get_global_id(0);////
         int x_id = get_global_id(1)-get_global_size(1)/2;////
-		for(int curDepth=0; curDepth <= maxDepth; curDepth++){
+		for(int curDepth=1; curDepth <= maxDepth; curDepth++){
 			int curCellWidth = curDepth*2+2;
 			int startPoint = curCellWidth/2;
 			int step = curCellWidth;
@@ -177,6 +193,8 @@ void VerticalWorker(
 			int pointX = x_id*step+startPoint;////
 			int pointZ = z_id*step+curCellWidth;////
 			
+
+
 			//check if vertical removal is even valid
 			//make sure each corner is inactive(false)
 			bool canSetNode = true;
@@ -250,7 +268,7 @@ void HorizontalWorker(
         int x_id = get_global_id(0);
         int z_id = get_global_id(1);
         
-		for(int curDepth=0; curDepth <= maxDepth; curDepth++){
+		for(int curDepth=1; curDepth <= maxDepth; curDepth++){
 			int curCellWidth = curDepth*2+2;
 			int startPoint = curCellWidth/2;
 			int step = curCellWidth;
@@ -258,18 +276,22 @@ void HorizontalWorker(
 			int pointX = x_id*step+curCellWidth;
 			int pointZ = z_id*step+startPoint;//+curCellWidth;
 			
+			if(curDepth==1 && pointX==4 && pointZ==6){
+				int hee=5;
+			}
+
 			//check if horizontal removal is even valid
 			//make sure each corner is inactive(false)
 			bool canSetNode = true;
 			if(curDepth != 0){
 				canSetNode = AreCornersEqual(
-				activeNodes,
-				chunkVertWidth,
-				pointX,
-				pointZ,
-				curDepth,
-				false
-				);
+					activeNodes,
+					chunkVertWidth,
+					pointX,
+					pointZ,
+					curDepth,//xxx
+					false
+					);
 			}
 
 			if( canSetNode){
@@ -287,6 +309,8 @@ void HorizontalWorker(
 			}
 			//wait until all orthogonal culling is completed
 			barrier(CLK_GLOBAL_MEM_FENCE);
+
+
 			//figure out if this thread is going to do cross culling
 			//if not, waits at the next fence like a good little worker
 			CrossCull(
@@ -301,7 +325,7 @@ void HorizontalWorker(
 				activeNodes
 				);
 			barrier(CLK_GLOBAL_MEM_FENCE);
-			
+		
 			//see if this worker needs to be culled
 			int numXWorkers = chunkBlockWidth/(curCellWidth*2)-1;
 			int numZWorkers = chunkBlockWidth/(curCellWidth*2);
@@ -326,9 +350,7 @@ void CrossCull(
     int curDepth,
     float4 *normals,
     bool *activeNodes){
-		if(curDepth==1){
-			int gfgfg =5;
-		}
+
 
         //this enumerates the 2d array of worker ids into a 1d array of super_ids
         int super_id = x_id+z_id*x_max;
@@ -347,6 +369,11 @@ void CrossCull(
 		int x_vert = x_cell * cellWidth+pow((float)2,curDepth);
 		int z_vert = z_cell * cellWidth+pow((float)2,curDepth);
         
+		if(curDepth==1 && x_cell==1 && z_cell==1){
+			int gfgfg =5;
+		}
+
+
 		//make sure we're able to cull the cross
 		//first check outer corners. They must be enabled.
         if( !AreCornersEqual(
