@@ -1,0 +1,1 @@
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/539e7d4fa6a864a8a542f61b04d7206d "githalytics.com")](http://githalytics.com/bsamuels453/Opencl-Quadtree)
